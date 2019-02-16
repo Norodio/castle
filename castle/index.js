@@ -5,9 +5,8 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 
 
-
-const prix = require('./castle');
-
+const michelin = require('../michelin');
+const prix = require('../ChateauPrix');
 
 async function getChateauxLink(){
 
@@ -64,11 +63,43 @@ function rechercher(tableau,element){
 }
 
 
-function main(){
+function compare(a, b) {
+try {
+	if (parseFloat(a.price) < parseFloat(b.price))
+     return -1;
+  if (parseFloat(a.price) > parseFloat(b.price))
+     return 1;
+} catch (e) {
 
-
+} finally {
 
 }
-prix();
 
-main();
+
+  return 0;
+}
+
+
+//lancer tout
+async function main(){
+	//await getChateauxLink();
+	//await michelin();
+	let json = require('../data/ChefsNames.json');
+	let chateauNonTrie = require("../data/UrlsChateauNonTrie");
+	//await filtrerChateauRestaurant(chateauNonTrie,json);
+	let chateauTrie = require('../data/UrlsChateauTrie');
+	//await prix(chateauTrie);
+  let finalListe = require ('../data/ChateauReady.json');
+  	//finalListe = sortByPrice(chateauReady);
+	//console.log(finalListe.sort(compare));
+	//console.log(parseFloat(finalListe[1].price));
+  return finalListe.sort(compare);
+}
+
+function castle(){
+  return main();
+}
+
+
+//console.log(castle);
+module.export = castle;
