@@ -11,7 +11,7 @@ async function getChefNames(){
 	var names = [];
 
 	for(var i = 1; i <= 35;i++){
-		process.stdout.write("Fetching restaurants page: "+i+"/"+35+"\r");
+		process.stdout.write("Fetching restaurants page: "+i+"/"+35+"                      \r");
 		await request((url + i.toString()), function(err, resp, html){
 			if(!err){
 				const $ = cheerio.load(html);
@@ -23,6 +23,7 @@ async function getChefNames(){
 			}
 		});
 	}
+	process.stdout.write("                                                               \r");
 	fs.writeFileSync("data/ChefsNames.json", JSON.stringify(names));
 }
 

@@ -17,8 +17,10 @@ async function getChateauxLink(){
 
 
 		$('#countryF').find("h3:contains('France')").parent().find('.listDiamond > li').each( function (index, value) {
+
 			urls.push($(this).find("a").first()[0].attribs.href);
 			});
+			console.log();
 	});
 	fs.writeFileSync("data/UrlsChateauNonTrie.json", JSON.stringify(urls));
 	}
@@ -27,7 +29,7 @@ async function filtrerChateauRestaurant(urls, michelin){
 	var urlsTrie = []
 
 	for (var i = 0; i < urls.length; i++) {
-		process.stdout.write("Sorting Castles: "+i+"/"+urls.length+"\r");
+		process.stdout.write("Sorting Castles: "+i+"/"+urls.length+"                                      \r");
 
 		var restaurant = false ;
 		var hotel = false;
@@ -50,6 +52,7 @@ async function filtrerChateauRestaurant(urls, michelin){
 				}
 		});
 	}
+	process.stdout.write("                                                                                 \r");
 	fs.writeFileSync("data/UrlsChateauTrie.json", JSON.stringify(urlsTrie));
 }
 
@@ -63,43 +66,26 @@ function rechercher(tableau,element){
 }
 
 
-function compare(a, b) {
-try {
-	if (parseFloat(a.price) < parseFloat(b.price))
-     return -1;
-  if (parseFloat(a.price) > parseFloat(b.price))
-     return 1;
-} catch (e) {
-
-} finally {
-
-}
 
 
-  return 0;
-}
+
+
 
 
 //lancer tout
 async function main(){
-	//await getChateauxLink();
-	//await michelin();
+	await getChateauxLink();
+	await michelin();
 	let json = require('../data/ChefsNames.json');
 	let chateauNonTrie = require("../data/UrlsChateauNonTrie");
-	//await filtrerChateauRestaurant(chateauNonTrie,json);
+	await filtrerChateauRestaurant(chateauNonTrie,json);
 	let chateauTrie = require('../data/UrlsChateauTrie');
-	//await prix(chateauTrie);
+	await prix(chateauTrie);
   let finalListe = require ('../data/ChateauReady.json');
-  	//finalListe = sortByPrice(chateauReady);
-	//console.log(finalListe.sort(compare));
-	//console.log(parseFloat(finalListe[1].price));
-  return finalListe.sort(compare);
-}
-
-function castle(){
-  return main();
+  return finalListe;
 }
 
 
-//console.log(castle);
-module.export = castle;
+
+
+module.exports = main;

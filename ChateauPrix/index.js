@@ -10,7 +10,7 @@ async function GetInformations(listeChateaux){
 
   for (var i = 0; i < listeChateaux.length; i++) {
 
-    process.stdout.write("Getting castles prices: "+i+"/"+listeChateaux.length+"\r");
+    process.stdout.write("Getting castles prices: "+i+"/"+listeChateaux.length+"                           \r");
 
     await request(listeChateaux[i],(error, response, html)=> {
 
@@ -19,18 +19,20 @@ async function GetInformations(listeChateaux){
       var price  = $(".price").first().text();
       var name = $(".mainTitle2").first().text();
       var tel = $(".footerBlocTel").first().text();
-      var region = $(".titleExtraInfo").text();
+      var departement = $(".titleExtraInfo").text();
       var ville = $(".mainTitle1").first().find("span").next().text();
+
 
       price = price.replace(",",".");
       tel = correctionTel(tel);
       name = name.substring(25,name.length - 37);
-      region = region.substring(1,name.length - 1);
+      departement = departement.replace(")","");
+      departement = departement.replace("(","");
 
 
       var hotel = {
             name: name,
-            region: region,
+            departement: departement,
             ville: ville,
             price: price,
             tel: tel,
@@ -41,9 +43,11 @@ async function GetInformations(listeChateaux){
       }
   	});
   }
+  process.stdout.write("                                                                                   \r");
   fs.writeFileSync("data/ChateauReady.json", JSON.stringify(listHotels));
 
 }
+
 
 function correctionTel(tel){
   let cor = tel.substring(29,tel.length);
@@ -66,8 +70,5 @@ function correctionPrix(prix){
 }
 
 
-function prix(liste){
-	GetInformations(liste);
-}
 
-module.exports = prix;
+module.exports = GetInformations;

@@ -1,74 +1,98 @@
 "use strict"
 
-const request = require('request-promise');
-const cheerio = require('cheerio');
 const fs = require('fs');
+const request = require('request-promise');
+const colors = require('./node_modules/colors/safe');
+const Readline = require('readline'); //for reading inputs
+const rl = Readline.createInterface({ //for reading inputs
+  input : process.stdin,
+  output: process.stdout,
+  terminal:false
+})
 
 
-
-const prix = require('./castle');
-
-
-async function getChateauxLink(){
-
-	var urls = [];
-	await request('https://www.relaischateaux.com/fr/site-map/etablissements',(error, response, html)=> {
-
-		var $ = cheerio.load(html);
+const castle = require('./Castle');
 
 
-		$('#countryF').find("h3:contains('France')").parent().find('.listDiamond > li').each( function (index, value) {
-			urls.push($(this).find("a").first()[0].attribs.href);
-			});
-	});
-	fs.writeFileSync("data/UrlsChateauNonTrie.json", JSON.stringify(urls));
+function compare(a, b) {
+	try {
+		if (parseFloat(a.price) < parseFloat(b.price))
+	     return -1;
+	  if (parseFloat(a.price) > parseFloat(b.price))
+	     return 1;
+	} catch (e) {
+
+	} finally {
+
 	}
-
-async function filtrerChateauRestaurant(urls, michelin){
-	var urlsTrie = []
-
-	for (var i = 0; i < urls.length; i++) {
-		process.stdout.write("Sorting Castles: "+i+"/"+urls.length+"\r");
-
-		var restaurant = false ;
-		var hotel = false;
-		await request(urls[i],(error,response,html)=>{
-				var $ = cheerio.load(html);
-
-				$('.jsSecondNav').find('.jsSecondNavMain > li').each( function (index, value) {
-					var type =$(this).find("a").children().text();
-					if(type.includes("Hôtel")){
-						hotel = true;
-					}
-					if(type.includes("Restaurant")){
-						restaurant = true;
-					}
-					});
-					var name = $(".mainTitle2").first().text();
-					name = name.substring(25,name.length - 37);
-				if(hotel && restaurant && (rechercher(michelin,name) != -1)){
-					urlsTrie.push(urls[i]);
-				}
-		});
-	}
-	fs.writeFileSync("data/UrlsChateauTrie.json", JSON.stringify(urlsTrie));
+	return 0;
 }
 
-function rechercher(tableau,element){
-	for (var i = 0; i < tableau.length; i++) {
-		if(tableau[i] == element){
-			return i;
-		}
+async function choixMode() {
+  return new Promise(function(resolve, reject) {
+    var ask = function() {
+      rl.question(colors.yellow('==> '), function(answer) {
+        let mode = parseInt(answer);
+        if (mode == 1) {
+          resolve(mode, reject);
+        } else {
+          if(mode == 2){
+            resolve(mode, reject);
+          }
+          else{
+            console.log("Votre commande n'a pas été comprise, veuillez la retaper");
+            ask();
+          }
+        }
+      });
+    };
+    ask();
+  });
+}
+
+function afficherChateau(liste){
+  for (var i = 0; i < 9; i++) {
+    console.log(colors.yellow(liste[i].name));
+    console.log(colors.green("A partir de ")+ colors.yellow(liste[i].price+"€"));
+    console.log(colors.green(liste[i].ville +", "+liste[i].departement));
+    console.log(colors.green("téléphone: "+liste[i].tel));
+    console.log(colors.green("link: ") + colors.blue(liste[i].link));
+    console.log();
+  }
+}
+
+async function main(){
+	console.clear();
+	console.log("Bienvenue dans cette application qui vous permettra de sélectionner L'Hôtel restaurant de vos rèves !");
+	console.log();
+	console.log();
+	console.log("Afin de vous faciliter la sélection, je vous propose deux options:");
+	console.log();
+	console.log(" - 1: Lancer la sélection parmi les proposition de RelaisChateaux en ligne (chargement long)");
+	console.log(" - 2: Lancer la sélection à partir de fichier JSON généré avec le dernier chargement (chargement rapide)");
+	console.log();
+
+  var mode = await choixMode();
+
+  let listeChateau;
+  let finalListe;
+	switch (mode) {
+		case 1:
+			listeChateau = await castle();
+			finalListe = listeChateau.sort(compare);
+      afficherChateau(finalListe);
+			break;
+		case 2:
+      listeChateau = require('./data/ChateauReady.json');
+      finalListe = listeChateau.sort(compare);
+      afficherChateau(finalListe);
+      //console.log(finalListe);
+			break;
+
+
 	}
-	return -1;
+  process.exit();
 }
 
-
-function main(){
-
-
-
-}
-prix();
 
 main();
